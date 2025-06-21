@@ -3,511 +3,404 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern File Browser</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <title>Modern Cloud Drive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         :root {
-            --bg-primary: #0f0f23;
-            --bg-secondary: #1a1a2e;
-            --bg-tertiary: #16213e;
-            --accent-primary: #00f5ff;
-            --accent-secondary: #ff006e;
-            --text-primary: #ffffff;
-            --text-secondary: #a0a0a0;
-            --border-color: rgba(0, 245, 255, 0.2);
-            --shadow-glow: 0 0 20px rgba(0, 245, 255, 0.3);
-            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --gradient-accent: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --background: #0f172a;
+            --surface: #1e293b;
+            --surface-light: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
         }
 
         body {
-            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg-primary);
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
             color: var(--text-primary);
             min-height: 100vh;
-            overflow-x: hidden;
         }
 
-        /* Animated background */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 40% 80%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
-            z-index: -1;
-            animation: backgroundShift 20s ease-in-out infinite;
-        }
-
-        @keyframes backgroundShift {
-            0%, 100% { transform: scale(1) rotate(0deg); }
-            50% { transform: scale(1.1) rotate(2deg); }
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .header {
-            background: rgba(26, 26, 46, 0.8);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 245, 255, 0.1), transparent);
-            animation: shimmer 3s ease-in-out infinite;
-        }
-
-        @keyframes shimmer {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 10px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .breadcrumb {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            position: relative;
-            z-index: 1;
-        }
-
-        .breadcrumb-item {
-            padding: 8px 16px;
-            background: rgba(0, 245, 255, 0.1);
-            border-radius: 20px;
-            border: 1px solid rgba(0, 245, 255, 0.2);
+        .card {
+            background: var(--surface);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
             transition: all 0.3s ease;
-            cursor: pointer;
         }
 
-        .breadcrumb-item:hover {
-            background: rgba(0, 245, 255, 0.2);
+        .card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 245, 255, 0.3);
-        }
-
-        .file-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .file-table {
-            background: rgba(26, 26, 46, 0.6);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: var(--shadow-glow);
-        }
-
-        .table-header {
-            background: var(--gradient-primary);
-            padding: 20px 30px;
-            display: grid;
-            grid-template-columns: 2fr 1fr 1.5fr 1fr;
-            gap: 20px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .file-row {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1.5fr 1fr;
-            gap: 20px;
-            padding: 20px 30px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .file-row::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 245, 255, 0.05), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .file-row:hover {
-            background: rgba(0, 245, 255, 0.05);
-            transform: translateX(5px);
-        }
-
-        .file-row:hover::before {
-            left: 100%;
-        }
-
-        .file-name {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            font-weight: 500;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
         }
 
         .file-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            background: var(--gradient-accent);
-            box-shadow: 0 4px 15px rgba(255, 0, 110, 0.3);
-            transition: all 0.3s ease;
+            color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 8px;
+            padding: 10px;
         }
 
-        .file-row:hover .file-icon {
-            transform: rotate(5deg) scale(1.1);
-            box-shadow: 0 6px 20px rgba(255, 0, 110, 0.5);
+        .folder-icon {
+            color: var(--warning);
+            background: rgba(245, 158, 11, 0.1);
+            border-radius: 8px;
+            padding: 10px;
         }
 
-        .file-link {
-            color: var(--text-primary);
-            text-decoration: none;
-            transition: all 0.3s ease;
+        .nav-item {
             position: relative;
+            transition: all 0.2s ease;
         }
 
-        .file-link::after {
+        .nav-item::after {
             content: '';
             position: absolute;
+            bottom: -4px;
+            left: 0;
             width: 0;
             height: 2px;
-            bottom: -2px;
-            left: 0;
-            background: var(--accent-primary);
+            background: var(--primary);
             transition: width 0.3s ease;
         }
 
-        .file-link:hover::after {
+        .nav-item:hover::after {
             width: 100%;
         }
 
-        .file-size, .file-date, .file-type {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
+        .active-nav::after {
+            width: 100%;
         }
 
-        .loading {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 200px;
+        .search-bar {
+            background: var(--surface-light);
+            transition: all 0.3s ease;
         }
 
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(0, 245, 255, 0.3);
-            border-top: 3px solid var(--accent-primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
+        .search-bar:focus-within {
+            outline: 2px solid var(--primary);
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .progress-bar {
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+            border-radius: 2px;
+            animation: progress 2s ease-in-out infinite;
         }
 
-        .folder-icon { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .file-icon-default { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-        .pdf-icon { background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%); }
-        .image-icon { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-        .audio-icon { background: linear-gradient(135deg, #43c6ac 0%, #191654 100%); }
-        .video-icon { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
-        .archive-icon { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
-        .text-icon { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); }
-        .html-icon { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
-
-        /* Responsive design */
-        @media (max-width: 768px) {
-            .file-table {
-                margin: 0 -20px;
-                border-radius: 0;
-            }
-            
-            .file-row {
-                grid-template-columns: 1fr;
-                gap: 10px;
-                padding: 15px 20px;
-            }
-            
-            .table-header {
-                display: none;
-            }
-            
-            .file-size, .file-date, .file-type {
-                font-size: 0.8rem;
-            }
+        @keyframes progress {
+            0% { background-position: 0% 50% }
+            50% { background-position: 100% 50% }
+            100% { background-position: 0% 50% }
         }
 
-        /* Scroll animations */
         .fade-in {
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeInUp 0.6s ease forwards;
+            animation: fadeIn 0.3s ease-in-out;
         }
 
-        @keyframes fadeInUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px) }
+            to { opacity: 1; transform: translateY(0) }
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+        }
+
+        .grid-view {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .grid-view {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
             }
-        }
-
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg-secondary);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--accent-primary);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--accent-secondary);
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1 id="heading">Index of /</h1>
-            <div class="breadcrumb" id="breadcrumb">
-                <div class="breadcrumb-item">Home</div>
+<body class="min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-indigo-900 to-indigo-800 shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="text-2xl font-bold flex items-center">
+                        <i class="fas fa-cloud mr-2"></i>
+                        <span>CloudDrive</span>
+                    </div>
+                    
+                    <!-- Breadcrumbs -->
+                    <div class="hidden md:flex items-center text-sm space-x-2">
+                        <a href="/" class="hover:text-indigo-200 transition">Home</a>
+                        <i class="fas fa-chevron-right text-xs opacity-50"></i>
+                        <a href="/documents" class="hover:text-indigo-200 transition">Documents</a>
+                        <i class="fas fa-chevron-right text-xs opacity-50"></i>
+                        <span class="text-indigo-200">Project Files</span>
+                    </div>
+                </div>
+                
+                <!-- Search and User Area -->
+                <div class="flex items-center space-x-4">
+                    <div class="relative search-bar rounded-full px-4 py-2 w-64">
+                        <i class="fas fa-search absolute left-4 top-3 text-indigo-200"></i>
+                        <input type="text" placeholder="Search files..." class="bg-transparent border-none w-full pl-10 focus:outline-none text-sm">
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <button class="bg-indigo-700 hover:bg-indigo-600 transition rounded-full p-2">
+                            <i class="fas fa-bell"></i>
+                        </button>
+                        
+                        <div class="w-8 h-8 bg-indigo-700 rounded-full flex items-center justify-center">
+                            <i class="fas fa-user text-sm"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 container mx-auto px-4 py-8">
+        <!-- Action Bar -->
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-2xl font-bold mb-1">Project Files</h1>
+                <p class="text-indigo-200 text-sm">12 items • Last updated 2 hours ago</p>
+            </div>
+            
+            <div class="flex space-x-3">
+                <div class="flex bg-slate-700 rounded-full overflow-hidden">
+                    <button class="px-4 py-2 text-sm bg-indigo-600">
+                        <i class="fas fa-th mr-2"></i> Grid
+                    </button>
+                    <button class="px-4 py-2 text-sm hover:bg-slate-600 transition">
+                        <i class="fas fa-list mr-2"></i> List
+                    </button>
+                </div>
+                
+                <button class="btn-primary px-4 py-2 rounded-full text-sm flex items-center">
+                    <i class="fas fa-plus mr-2"></i> Upload
+                </button>
             </div>
         </div>
         
-        <div class="file-table">
-            <div class="table-header">
-                <div>Name</div>
-                <div>Size</div>
-                <div>Modified</div>
-                <div>Type</div>
+        <!-- File Browser -->
+        <div class="grid-view">
+            <!-- Folder Item -->
+            <div class="card p-4 cursor-pointer">
+                <div class="folder-icon w-12 h-12 flex items-center justify-center mb-3">
+                    <i class="fas fa-folder text-xl"></i>
+                </div>
+                <h3 class="font-medium mb-1 truncate">Design Assets</h3>
+                <p class="text-sm text-slate-400">15 items</p>
+                <div class="mt-3 flex justify-between items-center">
+                    <span class="text-xs text-slate-400">Modified: Today</span>
+                    <button class="text-slate-400 hover:text-white transition">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                </div>
             </div>
-            <div id="file-list">
-                <div class="loading">
-                    <div class="spinner"></div>
+            
+            <!-- File Items -->
+            <div class="card p-4 cursor-pointer">
+                <div class="file-icon w-12 h-12 flex items-center justify-center mb-3">
+                    <i class="fas fa-file-pdf text-xl"></i>
+                </div>
+                <h3 class="font-medium mb-1 truncate">Project Proposal.pdf</h3>
+                <p class="text-sm text-slate-400">2.4 MB</p>
+                <div class="mt-3 flex justify-between items-center">
+                    <span class="text-xs text-slate-400">Modified: Yesterday</span>
+                    <button class="text-slate-400 hover:text-white transition">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card p-4 cursor-pointer">
+                <div class="file-icon w-12 h-12 flex items-center justify-center mb-3">
+                    <i class="fas fa-file-code text-xl"></i>
+                </div>
+                <h3 class="font-medium mb-1 truncate">index.html</h3>
+                <p class="text-sm text-slate-400">28 KB</p>
+                <div class="mt-3 flex justify-between items-center">
+                    <span class="text-xs text-slate-400">Modified: 3 days ago</span>
+                    <button class="text-slate-400 hover:text-white transition">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card p-4 cursor-pointer">
+                <div class="file-icon w-12 h-12 flex items-center justify-center mb-3">
+                    <i class="fas fa-file-image text-xl"></i>
+                </div>
+                <h3 class="font-medium mb-1 truncate">screenshot.png</h3>
+                <p class="text-sm text-slate-400">1.8 MB</p>
+                <div class="mt-3 flex justify-between items-center">
+                    <span class="text-xs text-slate-400">Modified: 1 week ago</span>
+                    <button class="text-slate-400 hover:text-white transition">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card p-4 cursor-pointer">
+                <div class="file-icon w-12 h-12 flex items-center justify-center mb-3">
+                    <i class="fas fa-file-audio text-xl"></i>
+                </div>
+                <h3 class="font-medium mb-1 truncate">presentation.mp3</h3>
+                <p class="text-sm text-slate-400">18.5 MB</p>
+                <div class="mt-3 flex justify-between items-center">
+                    <span class="text-xs text-slate-400">Modified: 2 days ago</span>
+                    <button class="text-slate-400 hover:text-white transition">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card p-4 cursor-pointer">
+                <div class="file-icon w-12 h-12 flex items-center justify-center mb-3">
+                    <i class="fas fa-file-video text-xl"></i>
+                </div>
+                <h3 class="font-medium mb-1 truncate">demo_video.mp4</h3>
+                <p class="text-sm text-slate-400">245 MB</p>
+                <div class="mt-3 flex justify-between items-center">
+                    <span class="text-xs text-slate-400">Modified: 2 weeks ago</span>
+                    <button class="text-slate-400 hover:text-white transition">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card p-4 cursor-pointer">
+                <div class="file-icon w-12 h-12 flex items-center justify-center mb-3">
+                    <i class="fas fa-file-excel text-xl"></i>
+                </div>
+                <h3 class="font-medium mb-1 truncate">budget.xlsx</h3>
+                <p class="text-sm text-slate-400">1.1 MB</p>
+                <div class="mt-3 flex justify-between items-center">
+                    <span class="text-xs text-slate-400">Modified: 4 days ago</span>
+                    <button class="text-slate-400 hover:text-white transition">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card p-4 cursor-pointer">
+                <div class="file-icon w-12 h-12 flex items-center justify-center mb-3">
+                    <i class="fas fa-file-alt text-xl"></i>
+                </div>
+                <h3 class="font-medium mb-1 truncate">meeting_notes.txt</h3>
+                <p class="text-sm text-slate-400">4 KB</p>
+                <div class="mt-3 flex justify-between items-center">
+                    <span class="text-xs text-slate-400">Modified: Today</span>
+                    <button class="text-slate-400 hover:text-white transition">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- File Preview Modal -->
+    <div class="fixed inset-0 z-50 hidden" id="previewModal">
+        <div class="absolute inset-0 bg-black bg-opacity-70 backdrop-blur-sm"></div>
+        <div class="relative max-w-4xl mx-auto my-32 bg-slate-800 rounded-xl overflow-hidden shadow-2xl">
+            <div class="absolute top-4 right-4 z-10">
+                <button class="text-slate-400 hover:text-white transition">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="h-96 flex items-center justify-center bg-slate-900 relative overflow-hidden">
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <i class="fas fa-file-alt text-6xl text-slate-600"></i>
+                </div>
+                <img src="" alt="" class="max-h-full max-w-full z-10" id="previewImage">
+            </div>
+            
+            <div class="p-6">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h2 class="text-xl font-bold mb-1" id="previewFileName">filename.ext</h2>
+                        <div class="flex space-x-4 text-sm text-slate-400">
+                            <span id="previewFileSize">0 KB</span>
+                            <span id="previewModified">Modified: Today</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex space-x-3">
+                        <button class="btn-primary px-4 py-2 rounded-md text-sm flex items-center">
+                            <i class="fas fa-download mr-2"></i> Download
+                        </button>
+                        <button class="border border-slate-600 px-4 py-2 rounded-md text-sm flex items-center hover:bg-slate-700 transition">
+                            <i class="fas fa-share-alt mr-2"></i> Share
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mt-6 pt-6 border-t border-slate-700">
+                    <h4 class="text-sm font-medium mb-3 text-slate-400">FILE ACTIONS</h4>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button class="flex flex-col items-center p-3 rounded-lg hover:bg-slate-700 transition">
+                            <i class="fas fa-copy mb-1"></i>
+                            <span class="text-xs">Copy Link</span>
+                        </button>
+                        <button class="flex flex-col items-center p-3 rounded-lg hover:bg-slate-700 transition">
+                            <i class="fas fa-edit mb-1"></i>
+                            <span class="text-xs">Rename</span>
+                        </button>
+                        <button class="flex flex-col items-center p-3 rounded-lg hover:bg-slate-700 transition">
+                            <i class="fas fa-trash-alt mb-1"></i>
+                            <span class="text-xs">Delete</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Mock data for demonstration
-        const mockFiles = [
-            {
-                name: 'Documents',
-                type: 'folder',
-                size: '',
-                modified: '2024-06-20 14:30',
-                mimeType: 'application/vnd.google-apps.folder'
-            },
-            {
-                name: 'Images',
-                type: 'folder',
-                size: '',
-                modified: '2024-06-19 10:15',
-                mimeType: 'application/vnd.google-apps.folder'
-            },
-            {
-                name: 'report.pdf',
-                type: 'file',
-                size: '2.5 MB',
-                modified: '2024-06-21 09:45',
-                mimeType: 'application/pdf'
-            },
-            {
-                name: 'photo.jpg',
-                type: 'file',
-                size: '1.8 MB',
-                modified: '2024-06-20 16:20',
-                mimeType: 'image/jpeg'
-            },
-            {
-                name: 'music.mp3',
-                type: 'file',
-                size: '4.2 MB',
-                modified: '2024-06-18 12:00',
-                mimeType: 'audio/mpeg'
-            },
-            {
-                name: 'video.mp4',
-                type: 'file',
-                size: '15.7 MB',
-                modified: '2024-06-17 08:30',
-                mimeType: 'video/mp4'
-            },
-            {
-                name: 'archive.zip',
-                type: 'file',
-                size: '890 KB',
-                modified: '2024-06-16 14:45',
-                mimeType: 'application/zip'
-            },
-            {
-                name: 'readme.txt',
-                type: 'file',
-                size: '2.1 KB',
-                modified: '2024-06-15 11:20',
-                mimeType: 'text/plain'
-            },
-            {
-                name: 'index.html',
-                type: 'file',
-                size: '5.6 KB',
-                modified: '2024-06-14 15:30',
-                mimeType: 'text/html'
-            }
-        ];
-
-        function getFileIcon(mimeType, type) {
-            if (type === 'folder') return '📁';
-            
-            const iconMap = {
-                'application/pdf': '📄',
-                'image/jpeg': '🖼️',
-                'image/png': '🖼️',
-                'audio/mpeg': '🎵',
-                'audio/wav': '🎵',
-                'video/mp4': '🎬',
-                'video/mpeg': '🎬',
-                'application/zip': '📦',
-                'application/x-zip-compressed': '📦',
-                'text/plain': '📝',
-                'text/html': '🌐',
-                'text/markdown': '📋'
-            };
-            
-            return iconMap[mimeType] || '📄';
-        }
-
-        function getIconClass(mimeType, type) {
-            if (type === 'folder') return 'folder-icon';
-            
-            if (mimeType.startsWith('image/')) return 'image-icon';
-            if (mimeType.startsWith('audio/')) return 'audio-icon';
-            if (mimeType.startsWith('video/')) return 'video-icon';
-            if (mimeType.includes('pdf')) return 'pdf-icon';
-            if (mimeType.includes('zip') || mimeType.includes('rar')) return 'archive-icon';
-            if (mimeType.startsWith('text/')) return 'text-icon';
-            if (mimeType.includes('html')) return 'html-icon';
-            
-            return 'file-icon-default';
-        }
-
-        function renderFiles(files) {
-            const fileList = document.getElementById('file-list');
-            
-            setTimeout(() => {
-                let html = '';
+        // File preview functionality
+        document.querySelectorAll('.card:not(:first-child)').forEach(card => {
+            card.addEventListener('click', function() {
+                const fileName = this.querySelector('h3').textContent;
+                const fileSize = this.querySelector('p').textContent;
+                const modified = this.querySelector('span').textContent;
+                const icon = this.querySelector('.file-icon i').className;
                 
-                files.forEach((file, index) => {
-                    const icon = getFileIcon(file.mimeType, file.type);
-                    const iconClass = getIconClass(file.mimeType, file.type);
-                    const href = file.type === 'folder' ? `#${file.name}/` : `#${file.name}`;
-                    
-                    html += `
-                        <div class="file-row fade-in" style="animation-delay: ${index * 0.1}s">
-                            <div class="file-name">
-                                <div class="file-icon ${iconClass}">${icon}</div>
-                                <a href="${href}" class="file-link">${file.name}${file.type === 'folder' ? '/' : ''}</a>
-                            </div>
-                            <div class="file-size">${file.size}</div>
-                            <div class="file-date">${file.modified}</div>
-                            <div class="file-type">${file.mimeType.split('/')[1] || 'folder'}</div>
-                        </div>
-                    `;
-                });
+                document.getElementById('previewFileName').textContent = fileName;
+                document.getElementById('previewFileSize').textContent = fileSize;
+                document.getElementById('previewModified').textContent = modified;
                 
-                fileList.innerHTML = html;
-            }, 1000);
-        }
-
-        function updateBreadcrumb(path) {
-            const breadcrumb = document.getElementById('breadcrumb');
-            const parts = path.split('/').filter(part => part);
-            
-            let html = '<div class="breadcrumb-item">Home</div>';
-            parts.forEach(part => {
-                html += `<div class="breadcrumb-item">${part}</div>`;
-            });
-            
-            breadcrumb.innerHTML = html;
-        }
-
-        // Initialize the interface
-        document.addEventListener('DOMContentLoaded', function() {
-            renderFiles(mockFiles);
-            
-            // Add click handlers for navigation
-            document.addEventListener('click', function(e) {
-                if (e.target.classList.contains('file-link')) {
-                    e.preventDefault();
-                    const href = e.target.getAttribute('href');
-                    if (href.endsWith('/')) {
-                        // Navigate to folder
-                        updateBreadcrumb(href.slice(1));
-                        document.getElementById('heading').textContent = `Index of ${href}`;
-                    }
+                // Set appropriate preview based on file type
+                if (icon.includes('image')) {
+                    document.getElementById('previewImage').src = 'https://source.unsplash.com/random/800x600';
+                    document.getElementById('previewImage').classList.remove('hidden');
+                } else {
+                    document.getElementById('previewImage').classList.add('hidden');
                 }
+                
+                // Show modal
+                document.getElementById('previewModal').classList.remove('hidden');
             });
         });
-    </script>
-</body>
-</html>
+        
+        // Close modal
+        document.querySelector('#previewModal button').addEventListener('click', function() {
+            document
