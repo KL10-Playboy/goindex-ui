@@ -72,7 +72,7 @@ function fetchData(path) {
           history.go(-1);
         }
       } else {
-        renderPage(path, obj.files);
+        renderPage(path, obj.data.files);
       }
     });
 }
