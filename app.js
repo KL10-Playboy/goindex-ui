@@ -1,4 +1,4 @@
-// custom-app.js from scratch — modern UI for GoIndex
+// custom-app.js from scratch — modern UI for GoIndex with data.files fix
 
 function formatFileSize(bytes) {
   if (bytes >= 1e9) return (bytes / 1e9).toFixed(2) + " GB";
@@ -22,13 +22,13 @@ function renderItem(path, item) {
   const modified = utcToLocal(item.modifiedTime);
 
   return `
-    <div class="card ${isFolder ? "folder" : "file"}">
-      <a href="${href}" class="card-link ${isFolder ? "folder" : ""}">
+    <div class="card ${isFolder ? 'folder' : 'file'}">
+      <a href="${href}" class="card-link ${isFolder ? 'folder' : ''}">
         <div class="icon">${icon}</div>
         <div class="details">
           <div class="name">${item.name}</div>
           <div class="meta">
-            ${size ? `<span>${size}</span>` : ""}
+            ${size ? `<span>${size}</span>` : ''}
             <span>${modified}</span>
           </div>
         </div>
@@ -38,41 +38,40 @@ function renderItem(path, item) {
 }
 
 function renderPage(path, files) {
-  const container = document.querySelector(".file-list");
-  container.innerHTML = "";
+  const container = document.querySelector('.file-list');
+  container.innerHTML = '';
 
-  if (path !== "/") {
-    const up = path.split("/").slice(0, -2).join("/") + "/";
-    container.innerHTML += renderItem(up, {
-      name: "..",
-      mimeType: "application/vnd.google-apps.folder",
-    });
+  if (path !== '/') {
+    const up = path.split('/').slice(0, -2).join('/') + '/';
+    container.innerHTML += renderItem(up, { name: '..', mimeType: 'application/vnd.google-apps.folder' });
   }
 
-  files.forEach((item) => {
+  files.forEach(item => {
     container.innerHTML += renderItem(path, item);
   });
 }
 
 function fetchData(path) {
-  const password = localStorage.getItem("password" + path);
+  const password = localStorage.getItem('password' + path);
   fetch(path, {
-    method: "POST",
-    body: JSON.stringify({ password }),
+    method: 'POST',
+    body: JSON.stringify({ password })
   })
-    .then((res) => res.text())
-    .then((text) => {
+    .then(res => res.text())
+    .then(text => {
       const obj = JSON.parse(text);
-      if (obj?.error?.code === "401") {
-        const pass = prompt("🔒 Password Required:", "");
+      if (obj?.error?.code === '401') {
+        const pass = prompt('🔒 Password Required:', '');
         if (pass) {
-          localStorage.setItem("password" + path, pass);
+          localStorage.setItem('password' + path, pass);
           fetchData(path);
         } else {
           history.go(-1);
         }
-      } else {
+      } else if (obj?.data?.files) {
         renderPage(path, obj.data.files);
+      } else {
+        document.querySelector(".file-list").innerHTML = "<p style='color:red;'>⚠️ Failed to load files</p>";
       }
     });
 }
@@ -87,7 +86,7 @@ window.onpopstate = () => {
   fetchData(window.location.pathname);
 };
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener('DOMContentLoaded', () => {
   document.body.innerHTML += `
     <style>
       body {
@@ -147,11 +146,11 @@ document.addEventListener("DOMContentLoaded", () => {
     </style>
   `;
 
-  document.body.addEventListener("click", (e) => {
-    const link = e.target.closest("a.folder");
+  document.body.addEventListener('click', (e) => {
+    const link = e.target.closest('a.folder');
     if (link) {
       e.preventDefault();
-      navigate(link.getAttribute("href"));
+      navigate(link.getAttribute('href'));
     }
   });
 
